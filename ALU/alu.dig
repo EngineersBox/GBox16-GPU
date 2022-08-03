@@ -1,0 +1,884 @@
+<?xml version="1.0" encoding="utf-8"?>
+<circuit>
+  <version>1</version>
+  <attributes/>
+  <visualElements>
+    <visualElement>
+      <elementName>Testcase</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>RESULT</string>
+        </entry>
+        <entry>
+          <string>Testdata</string>
+          <testData>
+            <dataString>ALUOP A B RESULT
+
+# Test small results
+loop(a, 1 &lt;&lt; 4)
+loop(b, 1 &lt;&lt; 4)
+    (00) (a) (b) ((a + b) &amp; 0xFFFF)
+    (01) (a) (b) ((a - b) &amp; 0xFFFF)
+    (10) (a) (b) (a &amp; b)
+    (11) (a) (b) (a | b)
+end loop
+end loop
+
+
+# Test large results
+loop(i, 1000)
+    let a = random(1 &lt;&lt; 16);
+    let b = random(1 &lt;&lt; 16);
+
+    (00) (a) (b) ((a + b) &amp; 0xFFFF)
+    (01) (a) (b) ((a - b) &amp; 0xFFFF)
+    (10) (a) (b) (a &amp; b)
+    (11) (a) (b) (a | b)
+end loop
+</dataString>
+          </testData>
+        </entry>
+      </elementAttributes>
+      <pos x="0" y="0"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Testcase</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>Z</string>
+        </entry>
+        <entry>
+          <string>Testdata</string>
+          <testData>
+            <dataString>ALUOP A B Z
+
+declare Z = FLAG &amp; 0b1;
+
+# Test all zero cases
+00 0 0 1
+01 0 0 1
+10 0 0 1
+11 0 0 1
+
+# Test 1 + (-1) = 0
+00 1 0xFFFF 1
+
+# Test with a single bit set in A
+loop(s, 16)
+    let a = 1 &lt;&lt; s;
+
+    00 (a) 0 (a = 0)
+    01 (a) 0 (a = 0)
+    10 (a) 0 1
+    11 (a) 0 (a = 0)
+end loop
+
+# Test random inputs
+loop(i, 200)
+    let a = random(1 &lt;&lt; 16);
+    let b = random(1 &lt;&lt; 16);
+
+    00 (a) (b) (((a + b) &amp; 0xFFFF) = 0)
+    01 (a) (b) (((a - b) &amp; 0xFFFF) = 0)
+    10 (a) (b) ((a &amp; b) = 0)
+    11 (a) (b) ((a | b) = 0)
+end loop
+</dataString>
+          </testData>
+        </entry>
+      </elementAttributes>
+      <pos x="0" y="100"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Testcase</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>N</string>
+        </entry>
+        <entry>
+          <string>Testdata</string>
+          <testData>
+            <dataString>ALUOP A B N
+
+declare N = (FLAG &gt;&gt; 1) &amp; 0b1;
+
+# Test all zero cases
+00 0 0 0
+01 0 0 0
+10 0 0 0
+11 0 0 0
+
+00 1 0xFFFF 0
+
+# Test with a single bit set in A
+loop(s, 16)
+    let a = 1 &lt;&lt; s;
+
+    00 (a) 0 ((a &gt;&gt; 15) &amp; 0b1)
+    01 (a) 0 ((a &gt;&gt; 15) &amp; 0b1)
+    10 (a) 0 0
+    11 (a) 0 ((a &gt;&gt; 15) &amp; 0b1)
+end loop
+
+# Test random inputs
+loop(i, 200)
+    let a = random(1 &lt;&lt; 16);
+    let b = random(1 &lt;&lt; 16);
+
+    00 (a) (b) (((a + b) &gt;&gt; 15) &amp; 0b1)
+    01 (a) (b) (((a - b) &gt;&gt; 15) &amp; 0b1)
+    10 (a) (b) (((a &amp; b) &gt;&gt; 15) &amp; 0b1)
+    11 (a) (b) (((a | b) &gt;&gt; 15) &amp; 0b1)
+end loop
+</dataString>
+          </testData>
+        </entry>
+      </elementAttributes>
+      <pos x="0" y="200"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Testcase</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>C</string>
+        </entry>
+        <entry>
+          <string>Testdata</string>
+          <testData>
+            <dataString>ALUOP A B C
+
+declare C = (FLAG &gt;&gt; 2) &amp; 0b1;
+
+00 0 0 0
+
+# (0 - 0) is implemented as 0 + (0xFFFF + 1), so a carry is expected
+01 0 0 1
+
+# Carry should propagate all the way from the first bit if necessary
+00 1 0xFFFF 1
+
+# Test with a single bit set in A
+loop(s, 16)
+    let a = 1 &lt;&lt; s;
+
+    00 (a) 0 0
+    01 (a) 0 1  # (a - 0) is implemented as (a + 0xFFFF + 1) in the adder, so a carry is always expected
+    10 (a) 0 0  # carry is defined as 0 for AND
+    11 (a) 0 0  # carry is defined as 0 for OR
+end loop
+
+# Adding 15 bit values should never carry
+loop(i, 100)
+    00 (random(1 &lt;&lt; 15)) (random(1 &lt;&lt; 15)) 0
+end loop
+
+# Test random inputs
+loop(i, 200)
+    let a = random(1 &lt;&lt; 16);
+    let b = random(1 &lt;&lt; 16);
+
+    00 (a) (b) (((a + b) &gt;&gt; 16) &amp; 0b1)
+    01 (a) (b) (~((a - b) &gt;&gt; 16) &amp; 0b1)
+end loop
+
+# AND and OR never set carry
+loop(i, 100)
+    let a = random(1 &lt;&lt; 16);
+    let b = random(1 &lt;&lt; 16);
+    10 (a) (b) 0
+    11 (a) (b) 0
+end loop
+</dataString>
+          </testData>
+        </entry>
+      </elementAttributes>
+      <pos x="0" y="300"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Testcase</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>V</string>
+        </entry>
+        <entry>
+          <string>Testdata</string>
+          <testData>
+            <dataString>ALUOP A B V
+
+declare V = (FLAG &gt;&gt; 3) &amp; 0b1;
+
+00 0 0 0
+01 0 0 0
+
+# 1 + (-1) = 0  ; different input signs = no overflow here!
+00 1 0xFFFF 0
+
+# 3 - 5 = 3 + (-5) = -2  ; subtraction inverts the second operand sign
+01 3 5 0
+
+# Some edge cases when subtracting 0x8000
+01 0x8000 0x8000 0
+01 0xFFFF 0x8000 0
+01 0x7FFF 0x8000 1
+
+# Test with a single bit set in A
+loop(s, 16)
+    let a = 1 &lt;&lt; s;
+
+    00 (a) 0 0
+    01 (a) 0 0
+    10 (a) 0 0  # overflow is defined as 0 for AND
+    11 (a) 0 0  # overflow is defined as 0 for OR
+end loop
+
+# Test random inputs
+loop(i, 200)
+    let a = random(1 &lt;&lt; 16);
+    let b = random(1 &lt;&lt; 16);
+
+    00 (a) (b) (((~(a ^ b) &amp; (a ^ (a + b))) &gt;&gt; 15) &amp; 0b1)
+    01 (a) (b) (((~(a ^ -b) &amp; (a ^ (a - b))) &gt;&gt; 15) &amp; 0b1)
+end loop
+
+# AND and OR never set overflow
+loop(i, 100)
+    let a = random(1 &lt;&lt; 16);
+    let b = random(1 &lt;&lt; 16);
+    10 (a) (b) 0
+    11 (a) (b) 0
+end loop
+</dataString>
+          </testData>
+        </entry>
+      </elementAttributes>
+      <pos x="0" y="400"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>First input to ALU</string>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>A</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>16</int>
+        </entry>
+      </elementAttributes>
+      <pos x="300" y="180"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>Second input to ALU</string>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>B</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>16</int>
+        </entry>
+      </elementAttributes>
+      <pos x="300" y="220"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>Operation selection input</string>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>ALUOP</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>2</int>
+        </entry>
+        <entry>
+          <string>intFormat</string>
+          <intFormat>bin</intFormat>
+        </entry>
+      </elementAttributes>
+      <pos x="300" y="40"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>The result of this ALU operation</string>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>RESULT</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>16</int>
+        </entry>
+      </elementAttributes>
+      <pos x="980" y="40"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>The flags associated with the result of this ALU operation
+
+0. Z (zero)
+1. N (negative)
+2. C (carry)
+3. V (overflow)</string>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>FLAG</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>4</int>
+        </entry>
+        <entry>
+          <string>intFormat</string>
+          <intFormat>bin</intFormat>
+        </entry>
+      </elementAttributes>
+      <pos x="980" y="80"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Not</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Bits</string>
+          <int>16</int>
+        </entry>
+      </elementAttributes>
+      <pos x="340" y="240"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Multiplexer</elementName>
+      <elementAttributes>
+        <entry>
+          <string>flipSelPos</string>
+          <boolean>true</boolean>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>16</int>
+        </entry>
+      </elementAttributes>
+      <pos x="400" y="200"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Or</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Bits</string>
+          <int>16</int>
+        </entry>
+        <entry>
+          <string>wideShape</string>
+          <boolean>true</boolean>
+        </entry>
+      </elementAttributes>
+      <pos x="540" y="180"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Multiplexer</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Bits</string>
+          <int>16</int>
+        </entry>
+        <entry>
+          <string>Selector Bits</string>
+          <int>2</int>
+        </entry>
+      </elementAttributes>
+      <pos x="700" y="0"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Comparator</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Bits</string>
+          <int>16</int>
+        </entry>
+        <entry>
+          <string>Signed</string>
+          <boolean>true</boolean>
+        </entry>
+      </elementAttributes>
+      <pos x="780" y="140"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Const</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Value</string>
+          <long>0</long>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>16</int>
+        </entry>
+      </elementAttributes>
+      <pos x="760" y="160"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>NetName</string>
+          <string>C_out</string>
+        </entry>
+      </elementAttributes>
+      <pos x="620" y="20"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="2"/>
+        </entry>
+        <entry>
+          <string>NetName</string>
+          <string>C_out</string>
+        </entry>
+      </elementAttributes>
+      <pos x="820" y="220"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Splitter</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="1"/>
+        </entry>
+        <entry>
+          <string>Input Splitting</string>
+          <string>1,1,1,1</string>
+        </entry>
+        <entry>
+          <string>Output Splitting</string>
+          <string>4</string>
+        </entry>
+      </elementAttributes>
+      <pos x="880" y="120"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Comparator</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Signed</string>
+          <boolean>true</boolean>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>2</int>
+        </entry>
+      </elementAttributes>
+      <pos x="340" y="20"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Const</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Bits</string>
+          <int>2</int>
+        </entry>
+      </elementAttributes>
+      <pos x="320" y="20"/>
+    </visualElement>
+    <visualElement>
+      <elementName>And</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Bits</string>
+          <int>16</int>
+        </entry>
+        <entry>
+          <string>wideShape</string>
+          <boolean>true</boolean>
+        </entry>
+      </elementAttributes>
+      <pos x="540" y="100"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>NetName</string>
+          <string>V</string>
+        </entry>
+      </elementAttributes>
+      <pos x="620" y="40"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="2"/>
+        </entry>
+        <entry>
+          <string>NetName</string>
+          <string>V</string>
+        </entry>
+      </elementAttributes>
+      <pos x="820" y="280"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Splitter</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Input Splitting</string>
+          <string>2</string>
+        </entry>
+        <entry>
+          <string>Output Splitting</string>
+          <string>1,1</string>
+        </entry>
+      </elementAttributes>
+      <pos x="740" y="180"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Multiplexer</elementName>
+      <elementAttributes/>
+      <pos x="840" y="220"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Const</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Value</string>
+          <long>0</long>
+        </entry>
+      </elementAttributes>
+      <pos x="780" y="260"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Multiplexer</elementName>
+      <elementAttributes>
+        <entry>
+          <string>flipSelPos</string>
+          <boolean>true</boolean>
+        </entry>
+      </elementAttributes>
+      <pos x="840" y="280"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="3"/>
+        </entry>
+        <entry>
+          <string>NetName</string>
+          <string>ALUOP</string>
+        </entry>
+      </elementAttributes>
+      <pos x="320" y="60"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="3"/>
+        </entry>
+        <entry>
+          <string>NetName</string>
+          <string>ALUOP</string>
+        </entry>
+      </elementAttributes>
+      <pos x="720" y="200"/>
+    </visualElement>
+    <visualElement>
+      <elementName>ripple-carry-adder-overflow.dig</elementName>
+      <elementAttributes/>
+      <pos x="540" y="0"/>
+    </visualElement>
+  </visualElements>
+  <wires>
+    <wire>
+      <p1 x="600" y="0"/>
+      <p2 x="680" y="0"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="0"/>
+      <p2 x="540" y="0"/>
+    </wire>
+    <wire>
+      <p1 x="680" y="0"/>
+      <p2 x="700" y="0"/>
+    </wire>
+    <wire>
+      <p1 x="760" y="160"/>
+      <p2 x="780" y="160"/>
+    </wire>
+    <wire>
+      <p1 x="840" y="160"/>
+      <p2 x="880" y="160"/>
+    </wire>
+    <wire>
+      <p1 x="780" y="320"/>
+      <p2 x="840" y="320"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="100"/>
+      <p2 x="540" y="100"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="260"/>
+      <p2 x="900" y="260"/>
+    </wire>
+    <wire>
+      <p1 x="780" y="260"/>
+      <p2 x="840" y="260"/>
+    </wire>
+    <wire>
+      <p1 x="400" y="40"/>
+      <p2 x="420" y="40"/>
+    </wire>
+    <wire>
+      <p1 x="660" y="40"/>
+      <p2 x="700" y="40"/>
+    </wire>
+    <wire>
+      <p1 x="740" y="40"/>
+      <p2 x="760" y="40"/>
+    </wire>
+    <wire>
+      <p1 x="600" y="40"/>
+      <p2 x="620" y="40"/>
+    </wire>
+    <wire>
+      <p1 x="300" y="40"/>
+      <p2 x="320" y="40"/>
+    </wire>
+    <wire>
+      <p1 x="420" y="40"/>
+      <p2 x="540" y="40"/>
+    </wire>
+    <wire>
+      <p1 x="320" y="40"/>
+      <p2 x="340" y="40"/>
+    </wire>
+    <wire>
+      <p1 x="760" y="40"/>
+      <p2 x="980" y="40"/>
+    </wire>
+    <wire>
+      <p1 x="620" y="200"/>
+      <p2 x="680" y="200"/>
+    </wire>
+    <wire>
+      <p1 x="760" y="200"/>
+      <p2 x="900" y="200"/>
+    </wire>
+    <wire>
+      <p1 x="320" y="200"/>
+      <p2 x="400" y="200"/>
+    </wire>
+    <wire>
+      <p1 x="520" y="140"/>
+      <p2 x="540" y="140"/>
+    </wire>
+    <wire>
+      <p1 x="760" y="140"/>
+      <p2 x="780" y="140"/>
+    </wire>
+    <wire>
+      <p1 x="880" y="300"/>
+      <p2 x="940" y="300"/>
+    </wire>
+    <wire>
+      <p1 x="880" y="80"/>
+      <p2 x="980" y="80"/>
+    </wire>
+    <wire>
+      <p1 x="880" y="240"/>
+      <p2 x="920" y="240"/>
+    </wire>
+    <wire>
+      <p1 x="380" y="240"/>
+      <p2 x="400" y="240"/>
+    </wire>
+    <wire>
+      <p1 x="320" y="240"/>
+      <p2 x="340" y="240"/>
+    </wire>
+    <wire>
+      <p1 x="320" y="20"/>
+      <p2 x="340" y="20"/>
+    </wire>
+    <wire>
+      <p1 x="680" y="20"/>
+      <p2 x="700" y="20"/>
+    </wire>
+    <wire>
+      <p1 x="600" y="20"/>
+      <p2 x="620" y="20"/>
+    </wire>
+    <wire>
+      <p1 x="520" y="20"/>
+      <p2 x="540" y="20"/>
+    </wire>
+    <wire>
+      <p1 x="300" y="180"/>
+      <p2 x="500" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="840" y="180"/>
+      <p2 x="900" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="720" y="180"/>
+      <p2 x="740" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="180"/>
+      <p2 x="540" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="620" y="120"/>
+      <p2 x="660" y="120"/>
+    </wire>
+    <wire>
+      <p1 x="820" y="280"/>
+      <p2 x="840" y="280"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="280"/>
+      <p2 x="900" y="280"/>
+    </wire>
+    <wire>
+      <p1 x="300" y="220"/>
+      <p2 x="320" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="440" y="220"/>
+      <p2 x="520" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="820" y="220"/>
+      <p2 x="840" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="520" y="220"/>
+      <p2 x="540" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="680" y="60"/>
+      <p2 x="700" y="60"/>
+    </wire>
+    <wire>
+      <p1 x="320" y="200"/>
+      <p2 x="320" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="320" y="40"/>
+      <p2 x="320" y="60"/>
+    </wire>
+    <wire>
+      <p1 x="320" y="220"/>
+      <p2 x="320" y="240"/>
+    </wire>
+    <wire>
+      <p1 x="900" y="120"/>
+      <p2 x="900" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="900" y="200"/>
+      <p2 x="900" y="260"/>
+    </wire>
+    <wire>
+      <p1 x="900" y="260"/>
+      <p2 x="900" y="280"/>
+    </wire>
+    <wire>
+      <p1 x="420" y="40"/>
+      <p2 x="420" y="200"/>
+    </wire>
+    <wire>
+      <p1 x="520" y="20"/>
+      <p2 x="520" y="140"/>
+    </wire>
+    <wire>
+      <p1 x="520" y="140"/>
+      <p2 x="520" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="680" y="0"/>
+      <p2 x="680" y="20"/>
+    </wire>
+    <wire>
+      <p1 x="680" y="60"/>
+      <p2 x="680" y="200"/>
+    </wire>
+    <wire>
+      <p1 x="940" y="120"/>
+      <p2 x="940" y="300"/>
+    </wire>
+    <wire>
+      <p1 x="780" y="260"/>
+      <p2 x="780" y="320"/>
+    </wire>
+    <wire>
+      <p1 x="880" y="80"/>
+      <p2 x="880" y="100"/>
+    </wire>
+    <wire>
+      <p1 x="880" y="120"/>
+      <p2 x="880" y="160"/>
+    </wire>
+    <wire>
+      <p1 x="720" y="80"/>
+      <p2 x="720" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="720" y="180"/>
+      <p2 x="720" y="200"/>
+    </wire>
+    <wire>
+      <p1 x="660" y="40"/>
+      <p2 x="660" y="120"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="0"/>
+      <p2 x="500" y="100"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="100"/>
+      <p2 x="500" y="180"/>
+    </wire>
+    <wire>
+      <p1 x="760" y="40"/>
+      <p2 x="760" y="140"/>
+    </wire>
+    <wire>
+      <p1 x="920" y="120"/>
+      <p2 x="920" y="240"/>
+    </wire>
+  </wires>
+  <measurementOrdering/>
+</circuit>
