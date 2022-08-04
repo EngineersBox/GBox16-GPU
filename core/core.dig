@@ -13,6 +13,11 @@
       </elementAttributes>
       <pos x="380" y="180"/>
     </visualElement>
+    <visualElement>
+      <elementName>alu.dig</elementName>
+      <elementAttributes/>
+      <pos x="760" y="260"/>
+    </visualElement>
   </visualElements>
   <wires/>
   <measurementOrdering/>
