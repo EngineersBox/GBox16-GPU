@@ -107,12 +107,12 @@
       <elementName>Multiplexer</elementName>
       <elementAttributes>
         <entry>
-          <string>flipSelPos</string>
-          <boolean>true</boolean>
+          <string>Bits</string>
+          <int>8</int>
         </entry>
         <entry>
-          <string>Bits</string>
-          <int>23</int>
+          <string>flipSelPos</string>
+          <boolean>true</boolean>
         </entry>
       </elementAttributes>
       <pos x="760" y="440"/>
@@ -220,6 +220,16 @@
       </elementAttributes>
       <pos x="900" y="340"/>
     </visualElement>
+    <visualElement>
+      <elementName>Const</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Value</string>
+          <long>0</long>
+        </entry>
+      </elementAttributes>
+      <pos x="500" y="420"/>
+    </visualElement>
   </visualElements>
   <wires>
     <wire>
@@ -249,6 +259,10 @@
     <wire>
       <p1 x="360" y="420"/>
       <p2 x="380" y="420"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="420"/>
+      <p2 x="560" y="420"/>
     </wire>
     <wire>
       <p1 x="740" y="360"/>
