@@ -10,6 +10,14 @@ TODO
 
 ## Concepts
 
+### VGA/HDMI
+
+TODO
+
+* Component wires as R,G,B values (any bit width)
+* Horizontal sync
+* Vertical sync
+
 ### Pipeline
 
 TODO
